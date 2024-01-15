@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,11 +46,17 @@ public class DeliveryService {
     @Transactional
     public DeliveryResponseDTO edit(Long id, @Valid DeliveryRequestDTO deliveryRequestDTO) {
         Delivery deliveryFound = findDeliveryById(id);
-        modelMapper.map(deliveryRequestDTO, deliveryFound);
-        deliveryFound.setId(id);
+        update(id, deliveryRequestDTO, deliveryFound);
         Delivery delivery = deliveryRepository.save(deliveryFound);
         LOGGER.info("Entrega editada com sucesso: {}", delivery);
         return buildReturn(delivery);
+    }
+
+    private void update(Long id, DeliveryRequestDTO deliveryRequestDTO, Delivery delivery) {
+        BeanUtils.copyProperties(deliveryRequestDTO, delivery);
+        delivery.setId(id);
+        delivery.setOrder(modelMapper.map(orderService
+                .findById(deliveryRequestDTO.getOrder().getId()), OrderEntity.class));
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +69,14 @@ public class DeliveryService {
     @Transactional(readOnly = true)
     public DeliveryResponseDTO findById(Long id) {
         Delivery delivery = findDeliveryById(id);
+        LOGGER.info("Entrega encontrada por ID {}: {}", id, delivery);
+        return buildReturn(delivery);
+    }
+
+    @Transactional(readOnly = true)
+    public DeliveryResponseDTO findDeliveryByOrder(Long id) {
+        Delivery delivery = deliveryRepository.findDeliveryByOrder_Id(id)
+                .orElseThrow(() -> new NotFoundException(DELIVERY_NOT_FOUND_MESSAGE + id));
         LOGGER.info("Entrega encontrada por ID {}: {}", id, delivery);
         return buildReturn(delivery);
     }

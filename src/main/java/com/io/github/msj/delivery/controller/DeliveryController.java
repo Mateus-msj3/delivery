@@ -1,11 +1,8 @@
 package com.io.github.msj.delivery.controller;
 
 import com.io.github.msj.delivery.dto.request.DeliveryRequestDTO;
-import com.io.github.msj.delivery.dto.request.OrderRequestDTO;
 import com.io.github.msj.delivery.dto.response.DeliveryResponseDTO;
-import com.io.github.msj.delivery.dto.response.OrderResponseDTO;
 import com.io.github.msj.delivery.service.DeliveryService;
-import com.io.github.msj.delivery.service.OrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +37,11 @@ public class DeliveryController {
     @GetMapping("/{id}")
     public ResponseEntity<DeliveryResponseDTO> findById(@PathVariable Long id) {
         return ResponseEntity.ok(deliveryService.findById(id));
+    }
+
+    @GetMapping("/order/{id}")
+    public ResponseEntity<DeliveryResponseDTO> findDeliveryByOrder(@PathVariable Long id) {
+        return ResponseEntity.ok(deliveryService.findDeliveryByOrder(id));
     }
 
     @DeleteMapping("/{id}")
