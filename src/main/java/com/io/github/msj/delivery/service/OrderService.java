@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +35,8 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO create(@Valid OrderRequestDTO orderRequestDTO) {
-        Customer customer = modelMapper.map(customerService.findById(orderRequestDTO.getCustomer().getId()), Customer.class);
+        Customer customer = modelMapper.map(customerService
+                .findById(orderRequestDTO.getCustomer().getId()), Customer.class);
         OrderEntity order = modelMapper.map(orderRequestDTO, OrderEntity.class);
         order.setCustomer(customer);
         orderRepository.save(order);
@@ -45,11 +47,17 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO edit(Long id, @Valid OrderRequestDTO orderRequestDTO) {
         OrderEntity orderFound = findOrderById(id);
-        modelMapper.map(orderRequestDTO, orderFound);
-        orderFound.setId(id);
+        update(id, orderRequestDTO, orderFound);
         OrderEntity order = orderRepository.save(orderFound);
         LOGGER.info("Cliente editado com sucesso: {}", order);
         return buildReturn(order);
+    }
+
+    private void update(Long id, OrderRequestDTO orderRequestDTO, OrderEntity orderFound) {
+        BeanUtils.copyProperties(orderRequestDTO, orderFound);
+        orderFound.setId(id);
+        orderFound.setCustomer(modelMapper.map(customerService
+                .findById(orderRequestDTO.getCustomer().getId()), Customer.class));
     }
 
     @Transactional(readOnly = true)
