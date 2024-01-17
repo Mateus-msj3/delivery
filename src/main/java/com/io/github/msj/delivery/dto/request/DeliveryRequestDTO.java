@@ -1,6 +1,5 @@
 package com.io.github.msj.delivery.dto.request;
 
-import com.io.github.msj.delivery.dto.OrderDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +20,7 @@ public class DeliveryRequestDTO {
     @NotEmpty(message = "É necessário informar o endereço.")
     private String address;
 
-    @NotNull(message = "É necessário informar o pedido.")
-    private OrderDTO order;
+    @NotNull(message = "É necessário informar o ID do pedido.")
+    private Long orderId;
 
 }
