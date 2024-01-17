@@ -23,4 +23,5 @@ public class OrderDTO {
 
     private OrderStatus status;
 
+    private CustomerDTO customer;
 }

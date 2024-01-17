@@ -36,12 +36,12 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO create(@Valid OrderRequestDTO orderRequestDTO) {
         Customer customer = modelMapper.map(customerService
-                .findById(orderRequestDTO.getCustomer().getId()), Customer.class);
+                .findById(orderRequestDTO.getCustomerId()), Customer.class);
         OrderEntity order = modelMapper.map(orderRequestDTO, OrderEntity.class);
         order.setCustomer(customer);
-        orderRepository.save(order);
+        OrderEntity orderSaved = orderRepository.save(order);
         LOGGER.info("Pedido salvo com sucesso: {}", order);
-        return buildReturn(order);
+        return buildReturn(orderSaved);
     }
 
     @Transactional
@@ -57,7 +57,7 @@ public class OrderService {
         BeanUtils.copyProperties(orderRequestDTO, orderFound);
         orderFound.setId(id);
         orderFound.setCustomer(modelMapper.map(customerService
-                .findById(orderRequestDTO.getCustomer().getId()), Customer.class));
+                .findById(orderRequestDTO.getCustomerId()), Customer.class));
     }
 
     @Transactional(readOnly = true)
