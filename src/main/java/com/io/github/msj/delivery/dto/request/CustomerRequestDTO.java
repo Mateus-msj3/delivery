@@ -13,8 +13,6 @@ import javax.validation.constraints.NotEmpty;
 @Builder
 public class CustomerRequestDTO {
 
-    private Long id;
-
     @NotEmpty(message = "É necessário informar o nome.")
     private String name;
 
