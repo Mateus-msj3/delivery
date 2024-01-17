@@ -83,7 +83,7 @@ class OrderServiceTest {
                 .build();
 
         orderRequestDTO = OrderRequestDTO.builder()
-                .customer(new CustomerDTO(1L, null, null, null))
+                .customerId(ID)
                 .orderDate(LocalDate.now())
                 .status(OrderStatus.WAITING_PAYMENT)
                 .totalAmount(BigDecimal.valueOf(100.00))
@@ -244,7 +244,7 @@ class OrderServiceTest {
 
         @Test
         @DisplayName("Deve buscar um pedido por id com sucesso")
-        void shouldFindByIdClientSuccessfully() {
+        void shouldFindByIdOrderSuccessfully() {
             when(orderRepository.findById(ID)).thenReturn(Optional.of(order));
             when(modelMapper.map(order, OrderResponseDTO.class)).thenReturn(orderResponseDTO);
 
