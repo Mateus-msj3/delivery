@@ -6,9 +6,9 @@ import com.io.github.msj.delivery.security.user.dto.JWTResponseDTO;
 import com.io.github.msj.delivery.security.user.dto.LoginRequestDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,7 +29,7 @@ public class AuthenticationService {
                     .build();
 
         } else {
-            throw new UsernameNotFoundException("Solicitação de login inválida..!!");
+            throw new BadCredentialsException("Solicitação de login inválida..!!");
         }
 
 
