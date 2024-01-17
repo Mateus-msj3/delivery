@@ -11,6 +11,7 @@ import com.io.github.msj.delivery.dto.response.DeliveryResponseDTO;
 import com.io.github.msj.delivery.dto.response.OrderResponseDTO;
 import com.io.github.msj.delivery.exception.NotFoundException;
 import com.io.github.msj.delivery.repository.DeliveryRepository;
+import org.hibernate.service.spi.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -106,7 +107,7 @@ class DeliveryServiceTest {
                 .build();
 
         deliveryRequestDTO = DeliveryRequestDTO.builder()
-                .order(orderDTO)
+                .orderId(ID)
                 .address("Rua A, 123")
                 .deliveryDate(LocalDate.now())
                 .build();
@@ -137,6 +138,7 @@ class DeliveryServiceTest {
         @Test
         @DisplayName("Deve criar uma entrega com sucesso")
         void shouldCreateDeliverySuccessfully() {
+            when(deliveryRepository.existsDeliveryByOrderId(ID)).thenReturn(false);
             when(orderService.findById(ID)).thenReturn(orderResponseDTO);
             when(modelMapper.map(orderResponseDTO, OrderEntity.class)).thenReturn(order);
             when(modelMapper.map(deliveryRequestDTO, Delivery.class)).thenReturn(delivery);
@@ -152,11 +154,22 @@ class DeliveryServiceTest {
             assertEquals(deliveryRequestDTO.getDeliveryDate(), deliveryArgumentCaptorValue.getDeliveryDate());
             assertEquals(deliveryRequestDTO.getAddress(), deliveryArgumentCaptorValue.getAddress());
 
+            verify(deliveryRepository, times(1)).existsDeliveryByOrderId(ID);
             verify(orderService, times(1)).findById(ID);
             verify(modelMapper, times(1)).map(orderResponseDTO, OrderEntity.class);
             verify(modelMapper, times(1)).map(deliveryRequestDTO, Delivery.class);
             verify(deliveryRepository, times(1)).save(deliveryArgumentCaptor.getValue());
             verify(modelMapper, times(1)).map(delivery, DeliveryResponseDTO.class);
+        }
+
+        @Test
+        @DisplayName("Deve lançar uma execeção quando já existir entrega cadastrada para um pedido")
+        void shouldThrowExceptionWhenThereIsRegisteredDeliveryForTheOrder() {
+            when(deliveryRepository.existsDeliveryByOrderId(ID)).thenReturn(true);
+
+            assertThrows(ServiceException.class, () -> deliveryService.create(deliveryRequestDTO));
+
+            verify(deliveryRepository, times(1)).existsDeliveryByOrderId(ID);
         }
 
         @Test
@@ -208,6 +221,20 @@ class DeliveryServiceTest {
         }
 
         @Test
+        @DisplayName("Deve lançar uma execeção quando já existir entrega cadastrada para um pedido")
+        void shouldThrowExceptionWhenThereIsRegisteredDeliveryForTheOrder() {
+            deliveryRequestDTO.setOrderId(2L);
+            when(deliveryRepository.findById(ID)).thenReturn(Optional.of(delivery));
+            when(deliveryRepository.existsDeliveryByOrderId(2L)).thenReturn(true);
+
+            assertThrows(ServiceException.class, () -> deliveryService.edit(ID, deliveryRequestDTO));
+
+            verify(deliveryRepository, times(1)).findById(ID);
+            verify(deliveryRepository, times(1)).existsDeliveryByOrderId(2L);
+        }
+
+
+        @Test
         @DisplayName("Deve lançar uma execeção quando ocorrer um erro ao editar uma entrega")
         void shouldThrowExceptionWhenErrorOccurs() {
             delivery.setAddress("Rua B, 321");
@@ -231,7 +258,7 @@ class DeliveryServiceTest {
 
         @Test
         @DisplayName("Deve listar todos as entregas com sucesso")
-        void shouldListOrdersSuccessfully() {
+        void shouldListDeliveriesSuccessfully() {
             List<Delivery> deliveries = Collections.singletonList(delivery);
             when(deliveryRepository.findAll()).thenReturn(deliveries);
             when(modelMapper.map(delivery, DeliveryResponseDTO.class)).thenReturn(deliveryResponseDTO);

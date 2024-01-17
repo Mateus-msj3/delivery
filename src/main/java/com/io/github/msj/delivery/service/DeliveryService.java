@@ -8,6 +8,7 @@ import com.io.github.msj.delivery.dto.response.DeliveryResponseDTO;
 import com.io.github.msj.delivery.exception.NotFoundException;
 import com.io.github.msj.delivery.repository.DeliveryRepository;
 import lombok.AllArgsConstructor;
+import org.hibernate.service.spi.ServiceException;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,28 +36,25 @@ public class DeliveryService {
 
     @Transactional
     public DeliveryResponseDTO create(@Valid DeliveryRequestDTO deliveryRequestDTO) {
-        OrderEntity order = modelMapper.map(orderService.findById(deliveryRequestDTO.getOrder().getId()), OrderEntity.class);
+        checkExistingDeliveryForOrder(deliveryRequestDTO);
+        OrderEntity order = modelMapper.map(orderService.findById(deliveryRequestDTO.getOrderId()), OrderEntity.class);
         Delivery delivery = modelMapper.map(deliveryRequestDTO, Delivery.class);
         delivery.setOrder(order);
-        deliveryRepository.save(delivery);
+        Delivery deliverySaved = deliveryRepository.save(delivery);
         LOGGER.info("Entrega salva com sucesso: {}", delivery);
-        return buildReturn(delivery);
+        return buildReturn(deliverySaved);
     }
 
     @Transactional
     public DeliveryResponseDTO edit(Long id, @Valid DeliveryRequestDTO deliveryRequestDTO) {
         Delivery deliveryFound = findDeliveryById(id);
+        if (!deliveryFound.getOrder().getId().equals(deliveryRequestDTO.getOrderId())) {
+            checkExistingDeliveryForOrder(deliveryRequestDTO);
+        }
         update(id, deliveryRequestDTO, deliveryFound);
         Delivery delivery = deliveryRepository.save(deliveryFound);
         LOGGER.info("Entrega editada com sucesso: {}", delivery);
         return buildReturn(delivery);
-    }
-
-    private void update(Long id, DeliveryRequestDTO deliveryRequestDTO, Delivery delivery) {
-        BeanUtils.copyProperties(deliveryRequestDTO, delivery);
-        delivery.setId(id);
-        delivery.setOrder(modelMapper.map(orderService
-                .findById(deliveryRequestDTO.getOrder().getId()), OrderEntity.class));
     }
 
     @Transactional(readOnly = true)
@@ -86,6 +84,19 @@ public class DeliveryService {
         Delivery delivery = findDeliveryById(id);
         deliveryRepository.delete(delivery);
         LOGGER.info("Entrega deletada com sucesso. ID: {}", id);
+    }
+
+    private void checkExistingDeliveryForOrder(DeliveryRequestDTO deliveryRequestDTO) {
+        if (deliveryRepository.existsDeliveryByOrderId(deliveryRequestDTO.getOrderId())) {
+            throw new ServiceException("Já existe entrega cadastrada para este pedido.");
+        }
+    }
+
+    private void update(Long id, DeliveryRequestDTO deliveryRequestDTO, Delivery delivery) {
+        BeanUtils.copyProperties(deliveryRequestDTO, delivery);
+        delivery.setId(id);
+        delivery.setOrder(modelMapper.map(orderService
+                .findById(deliveryRequestDTO.getOrderId()), OrderEntity.class));
     }
 
     private Delivery findDeliveryById(Long id) {
