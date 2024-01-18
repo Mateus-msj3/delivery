@@ -356,6 +356,7 @@ class DeliveryServiceTest {
         @Test
         @DisplayName("Deve deletar uma entrega com sucesso")
         void shouldDeleteOrderSuccessfully() {
+            delivery.setOrder(null);
             when(deliveryRepository.findById(ID)).thenReturn(Optional.of(delivery));
             doNothing().when(deliveryRepository).delete(delivery);
 
@@ -366,11 +367,21 @@ class DeliveryServiceTest {
         }
 
         @Test
+        @DisplayName("Deve lançar uma execeção quando tentar deletar uma entrega vinculada a um pedido")
+        void shouldThrowExceptionWhenErrorTryingToDeleteDeliveryLinkedToOrder() {
+            when(deliveryRepository.findById(ID)).thenReturn(Optional.of(delivery));
+
+            assertThrows(IllegalStateException.class, () -> deliveryService.delete(ID));
+
+            verify(deliveryRepository, times(1)).findById(ID);
+        }
+
+        @Test
         @DisplayName("Deve lançar uma execeção quando ocorrer um erro ao deletar uma entrega")
         void shouldThrowExceptionWhenErrorOccurs() {
             when(deliveryRepository.findById(ID)).thenReturn(Optional.empty());
 
-            assertThrows(NotFoundException.class, () -> deliveryService.findById(ID));
+            assertThrows(NotFoundException.class, () -> deliveryService.delete(ID));
 
             verify(deliveryRepository, times(1)).findById(ID);
         }

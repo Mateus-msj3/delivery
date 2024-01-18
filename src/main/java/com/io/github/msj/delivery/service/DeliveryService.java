@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 
@@ -82,6 +83,9 @@ public class DeliveryService {
     @Transactional
     public void delete(Long id) {
         Delivery delivery = findDeliveryById(id);
+        if (Objects.nonNull(delivery.getOrder())) {
+            throw new IllegalStateException("Não é possível excluir uma entrega vinculada a um pedido.");
+        }
         deliveryRepository.delete(delivery);
         LOGGER.info("Entrega deletada com sucesso. ID: {}", id);
     }
