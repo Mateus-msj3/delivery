@@ -33,6 +33,7 @@ Antes de começar, certifique-se de ter os seguintes requisitos instalados em su
 ## Executar a Aplicação:
 
 - Execute a classe principal `DeliveryApplication` para iniciar a aplicação.
+- Este projeto contém testes unitários para a camada Service.
 
 **Importante:**
 
