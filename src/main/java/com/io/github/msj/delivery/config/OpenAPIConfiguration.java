@@ -29,7 +29,7 @@ public class OpenAPIConfiguration {
                 .externalDocs(new ExternalDocumentation()
                         .description("SpringBoot Wiki Documentation")
                         .url("https://springboot.wiki.github.org/docs"))
-                .addServersItem(new Server().url("https://product-management-production-0f65.up.railway.app/"))
+                .addServersItem(new Server().url("https://delivery-production-1264.up.railway.app/"))
                 .addServersItem(new Server().url("http://localhost:8080"));
     }
 
